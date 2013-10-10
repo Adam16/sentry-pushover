@@ -1,41 +1,28 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+"""
+sentry_pushover.plugin
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-'''
-Sentry-Pushover
-=============
+:copyright: (c) 2011 by the Sentry Team, see AUTHORS for more details.
+:license: GNU General Public License, see LICENSE for more details.
+"""
 
-License
--------
-Copyright 2012 Janez Troha
-
-This file is part of Sentry-Pushover.
-
-Sentry-Pushover is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Sentry-Pushover is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Sentry-Pushover.  If not, see <http://www.gnu.org/licenses/>.
-'''
-
-from django import forms
+import sys
 import logging
-from sentry.conf import settings
-from sentry.plugins import Plugin
+from pprint import pformat
+from django import forms
+from django.utils.translation import ugettext_lazy as _
+from django.core.urlresolvers import reverse
 
-import sentry_pushover
+from sentry.plugins.bases.issue import IssuePlugin
+from sentry_pushover import VERSION
+
+import httplib
+import urlparse
 import requests
+import simplejson as json
 
 
 class PushoverSettingsForm(forms.Form):
-
     userkey = forms.CharField(help_text='Your user key. See https://pushover.net/')
     apikey = forms.CharField(help_text='Application API token. See https://pushover.net/apps/')
 
@@ -49,22 +36,19 @@ class PushoverSettingsForm(forms.Form):
                            help_text='High-priority notifications, also bypasses quiet hours.')
 
 
-class PushoverNotifications(Plugin):
-
-    author = 'Janez Troha'
-    author_url = 'http://dz0ny.info'
+class PushoverPlugin(IssuePlugin):
+    author = 'Adam Balachowski'
+    author_url = 'https://github.com/Adam16'
+    version = VERSION
+    slug = 'pushover'
     title = 'Pushover'
-
-    conf_title = 'Pushover'
-    conf_key = 'pushover'
-
-    resource_links = [
-        ('Bug Tracker', 'https://github.com/dz0ny/sentry-pushover/issues'),
-        ('Source', 'https://github.com/dz0ny/sentry-pushover'),
-    ]
-
-    version = sentry_pushover.VERSION
+    conf_title = title
+    conf_key = slug
     project_conf_form = PushoverSettingsForm
+    resource_links = [
+        ('Bug Tracker', 'https://github.com/Adam16/sentry-pushover/issues'),
+        ('Source', 'https://github.com/Adam16/sentry-pushover'),
+    ]
 
     def can_enable_for_projects(self):
         return True
